@@ -1,0 +1,22 @@
+.box {
+    color: #fff;
+    align-items: center;
+    text-align: center;
+    max-width: flex;
+    margin: 30px auto;
+    overflow: auto;
+    min-height: flex;
+    border: 1px solid white;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+.container {
+  padding: 1em;
+  margin: 0 auto;
+  text-align: center;
+}
+
+ul {
+  text-align: left;
+}
