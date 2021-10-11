@@ -1,6 +1,6 @@
-import { Component } from 'react';
-import axios from 'axios';
-import './style.css';
+import { Component } from "react";
+import axios from "axios";
+import "./style.css";
 
 class SearchAPI extends Component {
   constructor(props) {
@@ -8,18 +8,22 @@ class SearchAPI extends Component {
     this.state = {
       apiData: {},
       address: "",
-      found: false
-    }
+      found: false,
+    };
   }
 
   handleInputChange = (event) => {
     this.setState({ address: event.target.value });
-  }
+  };
 
   handleSearchClick = async () => {
     let address = this.state.address;
     let key = ""; // Google Cloud API key
-    let linkToAPI = "https://www.googleapis.com/civicinfo/v2/representatives?key=" + key + "&address=" + address;
+    let linkToAPI =
+      "https://www.googleapis.com/civicinfo/v2/representatives?key=" +
+      key +
+      "&address=" +
+      address;
 
     try {
       let response = await axios.get(linkToAPI);
@@ -31,73 +35,113 @@ class SearchAPI extends Component {
          * status code that falls out of the range of 2xx
          */
         this.setState({ found: false });
-        console.log(`Error: Not found - ${error.response.data}`); // Not Found
-        console.log(`Error: 404 - ${error.response.status}`); // 404
+        console.log(`Error: Not Found - ${error.response.data}`); // Not Found
+        console.log(`Error: ${error.response.status}`); // 404
       }
-
     }
-  }
-  // TODO: move main info here
-  makeTable = () => {
-    let currData = this.state.apiData;
-    console.log(currData);
-    let table = [];
-    // table.push(
-    //   <tr key={currData.id}>
-    //     <td>Height: {currData.height}</td>
-    //     <td>Weight: {currData.weight}</td>
-    //   </tr>
-    // );
-    return table;
-  }
+  };
 
   makeList = () => {
     let officials = this.state.apiData.officials;
     let offices = this.state.apiData.offices;
-    let list = officials.map((official, index) => {
+    let result = [];
+
+    // Combine into one object
+    offices.forEach((obj, index) => {
+      let indices = obj["officialIndices"];
+      indices.forEach((index, idx) => {
+        let temp = {};
+        temp["name"] = officials[index]["name"];
+        temp["office"] = obj["name"];
+        temp["address"] = officials[index]["address"];
+        temp["phones"] = officials[index]["phones"];
+        temp["urls"] = officials[index]["urls"];
+        temp["channels"] = officials[index]["channels"]; // social media
+        temp["photoUrl"] = officials[index]["photoUrl"];
+        temp["party"] = officials[index]["party"];
+        result.push(temp);
+      });
+    });
+
+    let list = result.map((official, index) => {
       return (
         <>
-          <ul>
-            <img height={100} weight={100} src={official.photoUrl ? official.photoUrl: "https://www.pngitem.com/pimgs/m/421-4212266_transparent-default-avatar-png-default-avatar-images-png.png"} />
-            <ul key={index}>
-              <li>Name: {official.name}</li>
-              <li>Address: {official.address && official.address.map((address) => <span>{address.line1}, {address.city}, {address.state} {address.zip}</span>)}</li>
-            </ul>
+          <ul key={index}>
+            <img
+              height={100}
+              weight={100}
+              alt={official.name}
+              src={
+                official.photoUrl
+                  ? official.photoUrl
+                  : "https://www.pinclipart.com/picdir/middle/169-1692839_default-avatar-transparent-clipart.png"
+              }
+            />
+            <div>
+              {official.name} ({official.party.charAt(0)})
+            </div>
+            <div>{official.office}</div>
+            <li>
+              Address:{" "}
+              {official.address &&
+                official.address.map((address) => (
+                  <span>
+                    {address.line1}, {address.city}, {address.state}{" "}
+                    {address.zip}
+                  </span>
+                ))}
+            </li>
+            <li>
+              Phone:{" "}
+              {official.phones &&
+                official.phones.map((number) => <span>{number}</span>)}
+            </li>
+            <li>
+              Website:{" "}
+              <ul>
+                {official.urls &&
+                  official.urls.map((website) => <li>{website}</li>)}
+              </ul>
+            </li>
           </ul>
           <hr />
         </>
       );
     });
     return list;
-  }
+  };
 
   render() {
     return (
       <div className="container">
         <div className="search">
-          <h1>Enter an address and zipcode!</h1>
-          <input type="text" value={this.state.address} onChange={this.handleInputChange} placeholder="695 Park Ave 10065" />
-          <button onClick={this.handleSearchClick}>View Representatives</button>
+          <h1>Find Your Reps</h1>
+          <p>
+            Enter an address followed by a zipcode to learn about your
+            representatives. Discover valuable information in their profile such
+            as their beliefs and bills voted on or simply find out how to
+            contact them.
+          </p>
+          <input
+            type="text"
+            value={this.state.address}
+            onChange={this.handleInputChange}
+            placeholder="695 Park Ave 10065"
+          />
+          <button onClick={this.handleSearchClick}>Search</button>
         </div>
-        {this.state.found
-          ? <div>
+        {this.state.found ? (
+          <div>
             <h1>{this.state.apiData.name}</h1>
-            <table id="data">
-              <tbody>
-                {this.makeTable()}
-              </tbody>
-            </table>
-            <p>Your Representatives</p>
+            <h4>Your Representatives</h4>
             <ul>{this.makeList()}</ul>
           </div>
-          : <h4>No results</h4>
-        }
+        ) : (
+          <h4>No results</h4>
+        )}
       </div>
     );
   }
 }
 
 export default SearchAPI;
-
-
-
